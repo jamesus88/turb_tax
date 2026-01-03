@@ -1,0 +1,55 @@
+from book import Book
+from datetime import datetime
+from argparse import ArgumentParser
+
+def today():
+    return datetime.today().strftime("%Y-%m-%d")
+
+def main():
+
+    parser = ArgumentParser(prog="turb tax CLI", description="easy finance tracker")
+
+    parser.add_argument("ledger_name")
+    subparsers = parser.add_subparsers(title="Actions", dest="command")
+
+    view_parser = subparsers.add_parser("view", help="view all entries")
+    view_parser.add_argument("-m", "--max", type=int)
+    view_parser.set_defaults(max = 200)
+
+    add_parser = subparsers.add_parser("add", help="add entry")
+    add_parser.add_argument("amount", type=float)
+    add_parser.add_argument("--date", "-d", help="date (yyyy-mm-dd)")
+    add_parser.add_argument("--desc", "-p")
+    add_parser.set_defaults(date = today(), desc = None)
+
+    delete_parser = subparsers.add_parser("delete", help="delete entry")
+    delete_parser.add_argument("index", type=int, help="id of the entry to delete")
+
+    clear_parser = subparsers.add_parser("clear", help="clear all entries")
+    clear_parser.add_argument("--confirm", action="store_true")
+
+    args = parser.parse_args()
+    
+    book = Book(args.ledger_name)
+    print()
+    
+    match args.command:
+        case 'view':
+            book.read(max_row=args.max)
+        case 'add':
+            book.add_entry(args.amount, args.date, args.desc)
+        case 'delete':
+            book.delete_entry(args.index)
+        case 'clear':
+            if args.confirm:
+                book.clear()
+            else:
+                print("Failure: did not --confirm.")
+        case _:
+            print("Commands: view, add, delete, clear. Call --help for more.")
+
+    return 0
+
+
+if __name__ == "__main__":
+    main()
