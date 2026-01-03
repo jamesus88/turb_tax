@@ -59,12 +59,13 @@ class Book:
     def delete_entry(self, index):
         self.cursor.execute(f"DELETE FROM Ledger WHERE id = {index};")
         self.db.commit()
-        bal = self.balance()
 
         if self.cursor.rowcount > 0:
+            bal = self.balance()
             print(f"Line removed. New balance: ${bal}")
+            self.read(max_row=5)
         else:
-            print(f"Failed to delete line {index}: id not found.")
+            print(f"Failed to delete line {index}: id not found.\n")
 
     def clear(self):
         if input("Clear Ledger? Enter to continue: ") == "":
