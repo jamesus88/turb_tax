@@ -47,11 +47,17 @@ class Book:
         print("Balance:", bal)
         print("---------------\n")
         return (name, desc, apr)
+    
+    def get_entry(self, index):
+        i, book, date, desc, amount = self.cursor.execute("SELECT * FROM Entries WHERE id = ?", (index,)).fetchone()
+        return (i, book, date, desc, amount)
 
     def read(self, calc_balance = True, max_row = 2000, skip_header=False):
         s = "SELECT * FROM Entries WHERE book = ?;"
         df = pd.read_sql_query(s, self.db, params=[self.name])
         df.set_index("id", inplace=True)
+
+        df.sort_values("date", inplace=True)
 
         if calc_balance: df["balance"] = self.cumsum()
 
@@ -64,6 +70,19 @@ class Book:
         print()
         return df
     
+    def edit_entry(self, index, date, desc, amount):
+        _, _, old_date, old_desc, old_amount = self.get_entry(index)
+        self.cursor.execute("""
+            UPDATE Entries
+            SET date = ?,
+                desc = ?,
+                amount = ?
+            WHERE id = ?
+        """, (date or old_date, desc or old_desc, amount or old_amount, index))
+        self.db.commit()
+
+        self.read()
+
     def edit_desc(self, desc):
         self.cursor.execute("""
             UPDATE Books

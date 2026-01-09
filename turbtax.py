@@ -19,10 +19,13 @@ def main():
     view_parser.add_argument("-d", "--details", action="store_true")
     view_parser.set_defaults(max = 200)
 
-    edit_parser = subparsers.add_parser("edit", help="edit book")
+    edit_parser = subparsers.add_parser("edit", help="edit book or entry")
+    edit_parser.add_argument("--index", "-i", type=int, help="Do not include index to edit book")
+    edit_parser.add_argument("--date", "-d")
+    edit_parser.add_argument("--amount", "-a", type=float)
     edit_parser.add_argument("--desc", "-p")
-    edit_parser.add_argument("--apr", "-a", help="apr as a decimal")
-    edit_parser.set_defaults(desc = None, apr = None)
+    edit_parser.add_argument("--apr", help="apr as a decimal")
+    edit_parser.set_defaults(desc = None, apr = None, index=None, date=today())
 
     add_parser = subparsers.add_parser("add", help="add entry")
     add_parser.add_argument("amount", type=float)
@@ -53,8 +56,12 @@ def main():
             
             book.read(max_row=args.max, skip_header=True)
         case 'edit':
-            if args.desc:
-                book.edit_desc(args.desc)
+            if args.index:
+                book.edit_entry(args.index, args.date, args.desc, args.amount)
+            else:
+                if args.desc:
+                    book.edit_desc(args.desc)
+
             if args.apr:
                 book.edit_apr(args.apr)
         case 'interest':
